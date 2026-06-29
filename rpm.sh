@@ -49,8 +49,10 @@ rpmbuild -bb \
   --define "_licensefile $repo_root/LICENSE" \
   "$repo_root/linux/assets/rpm/jhentai.spec"
 
-# Copy the built rpm(s) next to the deb output location.
+# Copy the built rpm(s) next to the deb output location. Clear stale rpms first
+# so build/linux only ever holds the package just built.
 mkdir -p "$repo_root/build/linux"
+rm -f "$repo_root"/build/linux/*.rpm
 find "$rpm_top/RPMS" -name '*.rpm' -exec cp {} "$repo_root/build/linux/" \;
 
 echo

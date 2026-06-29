@@ -32,6 +32,14 @@ sudo dnf remove jhentai      # uninstall
 - The `.repo` ships with `gpgcheck=1` and `repo_gpgcheck=1`, so dnf refuses
   unsigned or tampered packages/metadata.
 
+## Hosting model
+
+Packages live as assets on a rolling GitHub Release (tag `repo`); the dnf
+metadata on GitHub Pages points each package's location at the release download
+URL. So dnf reads the small signed metadata from Pages and downloads the rpm
+**directly from the release** — no rpm bytes are ever committed to git, and the
+release provides the package storage and bandwidth.
+
 ## For maintainers
 
 The repo is produced from the fork with a single command:
@@ -40,7 +48,9 @@ The repo is produced from the fork with a single command:
 ./distribute.sh
 ```
 
-which syncs upstream, builds the rpm (`rpm.sh`), signs it, regenerates the dnf
-metadata (`tools/fedora/build-fedora-repo.sh`), and publishes to the `gh-pages`
-branch. CI does the same automatically on tag pushes
-(`.github/workflows/fedora_repo.yml`).
+which syncs upstream, builds the host-arch rpm (`rpm.sh`), signs and uploads it
+to the rolling release (`tools/fedora/sign-and-upload.sh`), then regenerates and
+publishes the metadata (`tools/fedora/build-metadata.sh`). `distribute.sh`
+builds the host architecture only; **arm64 packages are produced by CI**
+(`.github/workflows/fedora_repo.yml`, which builds x86_64 + aarch64 on tag
+pushes and leaves the other arch's package in place).

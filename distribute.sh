@@ -3,12 +3,16 @@
 #
 # Does the whole chain in one shot:
 #   1. Sync the latest changes from the upstream author into your fork.
-#   2. Build the Linux .rpm.
-#   3. Merge it with the packages already live on gh-pages and prune old ones.
-#   4. Sign packages + metadata and rebuild the dnf repo.
-#   5. Push the repo to the gh-pages branch and make sure GitHub Pages is on.
+#   2. Build the Linux .rpm for this host's architecture.
+#   3. Sign it and upload it to the rolling GitHub Release (the package store).
+#   4. Rebuild the dnf metadata over ALL packages on the release and publish it
+#      (metadata only) to gh-pages.
 #
-# After it finishes, users can `dnf install jhentai` from your repo.
+# Packages live as release assets and dnf downloads them straight from there;
+# only the small signed metadata is served from GitHub Pages. After it finishes,
+# users can `dnf install jhentai` from your repo. NOTE: this builds the host
+# architecture only (x86_64 here) — arm64 packages come from CI; this script
+# leaves any existing arm64 release asset untouched.
 #
 # Config (env, with sensible defaults):
 #   ORIGIN_REMOTE     your fork remote        (default: origin)
@@ -72,65 +76,29 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 2. Build the rpm
+# 2. Build the rpm (host architecture)
 # ---------------------------------------------------------------------------
-echo "==> [2/5] Building rpm"
+echo "==> [2/4] Building rpm"
 bash "$repo_root/rpm.sh"
 new_rpm=$(ls -t "$repo_root"/build/linux/*.rpm | head -1)
 echo "    built: $(basename "$new_rpm")"
 
 # ---------------------------------------------------------------------------
-# 3. Assemble gh-pages worktree (existing packages + new, pruned)
+# 3. Sign + upload the package to the rolling release
+#    (arm64 packages, if any, are produced by CI and live in the same release;
+#    this step only adds/replaces the host arch and never removes the others)
 # ---------------------------------------------------------------------------
-echo "==> [3/5] Assembling repo from $PAGES_BRANCH"
-worktree="$repo_root/build/gh-pages"
-git worktree remove --force "$worktree" 2>/dev/null || true
-rm -rf "$worktree"
-git fetch "$ORIGIN_REMOTE" "$PAGES_BRANCH" 2>/dev/null || true
-if git rev-parse --verify "$ORIGIN_REMOTE/$PAGES_BRANCH" >/dev/null 2>&1; then
-  git worktree add "$worktree" "$ORIGIN_REMOTE/$PAGES_BRANCH"
-else
-  git worktree add --detach "$worktree"
-  git -C "$worktree" checkout --orphan "$PAGES_BRANCH"
-  git -C "$worktree" rm -rf . >/dev/null 2>&1 || true
-fi
-
-fedora_dir="$worktree/fedora"
-mkdir -p "$fedora_dir"
-cp -f "$new_rpm" "$fedora_dir/"
-
-# Prune: keep newest KEEP_VERSIONS per architecture.
-for arch in $(ls "$fedora_dir"/*.rpm 2>/dev/null | sed -E 's/.*\.([a-z0-9_]+)\.rpm/\1/' | sort -u); do
-  ls "$fedora_dir"/*."$arch".rpm 2>/dev/null | sort -V | head -n "-$KEEP_VERSIONS" | while read -r old; do
-    echo "    pruning $(basename "$old")"
-    rm -f "$old"
-  done
-done
+echo "==> [3/4] Signing + uploading package to release"
+GPG_NAME="$GPG_NAME" GPG_PASSPHRASE_FILE="$GPG_PASSPHRASE_FILE" \
+  bash "$repo_root/tools/fedora/sign-and-upload.sh" "$new_rpm"
 
 # ---------------------------------------------------------------------------
-# 4. Sign + build metadata
+# 4. Rebuild metadata over ALL release packages and publish to gh-pages
 # ---------------------------------------------------------------------------
-echo "==> [4/5] Signing + indexing"
-GPG_NAME="$GPG_NAME" \
-GPG_PASSPHRASE_FILE="$GPG_PASSPHRASE_FILE" \
-REPO_BASEURL="$REPO_BASEURL" \
-  bash "$repo_root/tools/fedora/build-fedora-repo.sh" "$fedora_dir"
-
-# ---------------------------------------------------------------------------
-# 5. Publish to gh-pages + ensure Pages enabled
-# ---------------------------------------------------------------------------
-echo "==> [5/5] Publishing to $ORIGIN_REMOTE/$PAGES_BRANCH"
-touch "$worktree/.nojekyll"
-git -C "$worktree" add -A
-if git -C "$worktree" diff --cached --quiet; then
-  echo "    nothing changed"
-else
-  app_version=$(head -n 5 "$repo_root/pubspec.yaml" | tail -n 1 | cut -d ' ' -f 2)
-  git -C "$worktree" -c user.name="JHenTai Fedora Bot" \
-                     -c user.email="shadowblaze_kai@icloud.com" \
-                     commit -q -m "Publish Fedora repo for $app_version"
-  git -C "$worktree" push "$ORIGIN_REMOTE" "HEAD:$PAGES_BRANCH"
-fi
+echo "==> [4/4] Rebuilding metadata + publishing"
+GPG_NAME="$GPG_NAME" GPG_PASSPHRASE_FILE="$GPG_PASSPHRASE_FILE" \
+REPO_BASEURL="$REPO_BASEURL" KEEP_VERSIONS="$KEEP_VERSIONS" PAGES_BRANCH="$PAGES_BRANCH" \
+  bash "$repo_root/tools/fedora/build-metadata.sh"
 
 # Enable GitHub Pages (idempotent).
 if command -v gh >/dev/null 2>&1; then
@@ -139,8 +107,6 @@ if command -v gh >/dev/null 2>&1; then
   || gh api -X PUT "repos/$owner/$name/pages" \
     -f "source[branch]=$PAGES_BRANCH" -f "source[path]=/" >/dev/null 2>&1 || true
 fi
-
-git worktree remove --force "$worktree" 2>/dev/null || true
 
 echo
 echo "Done. Users can install with:"

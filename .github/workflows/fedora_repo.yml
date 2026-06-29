@@ -1,9 +1,9 @@
 name: Publish Fedora dnf repo
 
-# Builds the signed .rpm and publishes the dnf repository to the gh-pages
-# branch. Runs on tag pushes and on demand. This is a fork-only workflow: it
-# uses the committed jh_api_secret_config.dart as-is and needs no mobile
-# signing secrets — only the GPG signing key.
+# Builds the signed .rpm for x86_64 and aarch64, uploads them to the rolling
+# "repo" release, then regenerates the dnf metadata (pointing at the release
+# download URLs) and publishes it to gh-pages. Fork-only workflow: it uses the
+# committed jh_api_secret_config.dart as-is and needs only the GPG signing key.
 on:
   push:
     tags:
@@ -18,19 +18,27 @@ permissions:
   contents: write
   pages: write
 
+env:
+  FLUTTER_VERSION: 3.24.4
+  GPG_NAME: JHenTai Fedora Repo
+
 jobs:
-  publish:
-    runs-on: ubuntu-22.04
+  # ---- Stage 1: build + sign + upload one package per architecture ----------
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            arch: x86_64
+          - os: ubuntu-22.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.os }}
     env:
-      FLUTTER_VERSION: 3.24.4
       GH_TOKEN: ${{ github.token }}
-      GPG_NAME: JHenTai Fedora Repo
-      SKIP_UPSTREAM_SYNC: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -42,8 +50,7 @@ jobs:
       - name: Install packaging deps
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ninja-build libfuse2 webkit2gtk-4.1 \
-            rpm createrepo-c
+          sudo apt-get install -y ninja-build libfuse2 webkit2gtk-4.1 rpm
 
       - name: Flutter pub get
         run: flutter pub get
@@ -57,10 +64,44 @@ jobs:
           install -m 600 /dev/null "$RUNNER_TEMP/gpg_passphrase"
           printf '%s' "$RPM_GPG_PASSPHRASE" > "$RUNNER_TEMP/gpg_passphrase"
 
-      - name: Build, sign and publish repo
+      - name: Build, sign and upload package
+        env:
+          GPG_PASSPHRASE_FILE: ${{ runner.temp }}/gpg_passphrase
+        run: |
+          bash rpm.sh
+          rpm=$(ls build/linux/*.rpm | head -1)
+          bash tools/fedora/sign-and-upload.sh "$rpm"
+
+  # ---- Stage 2: regenerate metadata over all packages and publish -----------
+  publish:
+    needs: build
+    runs-on: ubuntu-22.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install repo tools
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y createrepo-c rpm
+
+      - name: Import GPG signing key
+        env:
+          RPM_GPG_PRIVATE_KEY: ${{ secrets.RPM_GPG_PRIVATE_KEY }}
+          RPM_GPG_PASSPHRASE: ${{ secrets.RPM_GPG_PASSPHRASE }}
+        run: |
+          printf '%s' "$RPM_GPG_PRIVATE_KEY" | gpg --batch --import
+          install -m 600 /dev/null "$RUNNER_TEMP/gpg_passphrase"
+          printf '%s' "$RPM_GPG_PASSPHRASE" > "$RUNNER_TEMP/gpg_passphrase"
+
+      - name: Build metadata and publish to gh-pages
         env:
           GPG_PASSPHRASE_FILE: ${{ runner.temp }}/gpg_passphrase
         run: |
           git config --global user.name "JHenTai Fedora Bot"
           git config --global user.email "shadowblaze_kai@icloud.com"
-          bash distribute.sh
+          bash tools/fedora/build-metadata.sh
