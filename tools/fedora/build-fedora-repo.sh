@@ -26,7 +26,7 @@ script_dir=$(cd "$(dirname "$0")" && pwd)
 repo_root=$(cd "$script_dir/../.." && pwd)
 
 GPG_NAME=${GPG_NAME:-JHenTai Fedora Repo}
-REPO_BASEURL=${REPO_BASEURL:-https://meeks233.github.io/JHenTai/fedora/}
+REPO_BASEURL=${REPO_BASEURL:-https://meeks233.github.io/Jhentai-rpm/fedora/}
 PUBKEY_FILE=${PUBKEY_FILE:-$repo_root/linux/assets/rpm/RPM-GPG-KEY-jhentai}
 GPG_PASSPHRASE_FILE=${GPG_PASSPHRASE_FILE:-}
 

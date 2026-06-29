@@ -21,8 +21,8 @@ Adds a short **Fedora / dnf** install section to the README (and a linked
 repository:
 
 ```bash
-sudo rpm --import https://meeks233.github.io/JHenTai/fedora/RPM-GPG-KEY-jhentai
-sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo https://meeks233.github.io/JHenTai/fedora/jhentai.repo
+sudo rpm --import https://meeks233.github.io/Jhentai-rpm/fedora/RPM-GPG-KEY-jhentai
+sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo https://meeks233.github.io/Jhentai-rpm/fedora/jhentai.repo
 sudo dnf install jhentai
 ```
 

@@ -64,8 +64,8 @@ or execute it (You may need to install webkit2gtk-4.1).
 Install for Fedora / dnf (community-maintained repo by [@Meeks233](https://github.com/Meeks233)):
 
 ```bash
-sudo rpm --import https://meeks233.github.io/JHenTai/fedora/RPM-GPG-KEY-jhentai
-sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo https://meeks233.github.io/JHenTai/fedora/jhentai.repo
+sudo rpm --import https://meeks233.github.io/Jhentai-rpm/fedora/RPM-GPG-KEY-jhentai
+sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo https://meeks233.github.io/Jhentai-rpm/fedora/jhentai.repo
 sudo dnf install jhentai
 ```
 

@@ -9,9 +9,9 @@ JHenTai, so you can install and keep it updated like any other package.
 ## Install
 
 ```bash
-sudo rpm --import https://meeks233.github.io/JHenTai/fedora/RPM-GPG-KEY-jhentai
+sudo rpm --import https://meeks233.github.io/Jhentai-rpm/fedora/RPM-GPG-KEY-jhentai
 sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo \
-  https://meeks233.github.io/JHenTai/fedora/jhentai.repo
+  https://meeks233.github.io/Jhentai-rpm/fedora/jhentai.repo
 sudo dnf install jhentai
 ```
 
