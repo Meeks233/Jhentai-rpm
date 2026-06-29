@@ -51,6 +51,13 @@ The repo is produced from the fork with a single command:
 which syncs upstream, builds the host-arch rpm (`rpm.sh`), signs and uploads it
 to the rolling release (`tools/fedora/sign-and-upload.sh`), then regenerates and
 publishes the metadata (`tools/fedora/build-metadata.sh`). `distribute.sh`
-builds the host architecture only; **arm64 packages are produced by CI**
-(`.github/workflows/fedora_repo.yml`, which builds x86_64 + aarch64 on tag
-pushes and leaves the other arch's package in place).
+builds the host architecture only.
+
+### Fully automated (no local steps)
+
+`.github/workflows/sync-and-publish.yml` runs daily: it merges the upstream
+author's latest changes (`tools/fedora/sync-upstream.sh`) and, whenever the app
+version moves, calls `.github/workflows/fedora_repo.yml` to build **x86_64 +
+aarch64** and republish the repo. Trigger it by hand from the Actions tab
+("Run workflow", optionally forcing a rebuild). Nothing on a maintainer's
+machine is required; users just get the update via `dnf upgrade`.

@@ -1,0 +1,46 @@
+name: Sync upstream & publish
+
+# One-dragon automation: on a schedule, merge the upstream author's latest
+# changes into this fork, and whenever the app version moves, build the rpms
+# (x86_64 + aarch64) and republish the dnf repo. Fully hands-off — users just
+# get the update via `dnf upgrade`.
+on:
+  schedule:
+    - cron: '0 6 * * *'   # daily, 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Build & publish even if the version did not change
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.sync.outputs.changed }}
+      version: ${{ steps.sync.outputs.version }}
+      sha: ${{ steps.sync.outputs.sha }}
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync upstream
+        id: sync
+        env:
+          FORCE: ${{ inputs.force && '1' || '0' }}
+        run: bash tools/fedora/sync-upstream.sh
+
+  release:
+    needs: sync
+    if: needs.sync.outputs.changed == 'true'
+    uses: ./.github/workflows/fedora_repo.yml
+    with:
+      ref: ${{ needs.sync.outputs.sha }}
+    secrets: inherit

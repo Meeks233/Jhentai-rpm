@@ -58,21 +58,13 @@ echo "==> Pages:   $REPO_BASEURL"
 # ---------------------------------------------------------------------------
 # 1. Sync upstream author -> fork
 # ---------------------------------------------------------------------------
-if [ "${SKIP_UPSTREAM_SYNC:-0}" != "1" ] && git remote get-url "$UPSTREAM_REMOTE" >/dev/null 2>&1; then
-  echo "==> [1/5] Syncing $UPSTREAM_REMOTE/$BRANCH into $BRANCH"
-  git fetch "$UPSTREAM_REMOTE" "$BRANCH"
+if [ "${SKIP_UPSTREAM_SYNC:-0}" != "1" ]; then
+  echo "==> [1/4] Syncing upstream into $BRANCH"
   git checkout "$BRANCH"
-  before=$(git rev-parse HEAD)
-  git merge --no-edit "$UPSTREAM_REMOTE/$BRANCH"
-  after=$(git rev-parse HEAD)
-  if [ "$before" != "$after" ]; then
-    echo "    merged upstream changes; pushing $BRANCH to $ORIGIN_REMOTE"
-    git push "$ORIGIN_REMOTE" "$BRANCH"
-  else
-    echo "    already up to date with upstream"
-  fi
+  ORIGIN_REMOTE="$ORIGIN_REMOTE" BRANCH="$BRANCH" \
+    bash "$repo_root/tools/fedora/sync-upstream.sh"
 else
-  echo "==> [1/5] Skipping upstream sync"
+  echo "==> [1/4] Skipping upstream sync"
 fi
 
 # ---------------------------------------------------------------------------
