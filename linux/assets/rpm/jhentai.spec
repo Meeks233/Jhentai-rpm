@@ -25,7 +25,10 @@ AutoReqProv: no
 
 Name:           jhentai
 Version:        %{_version}
-Release:        1%{?dist}
+# No %%{?dist}: this is a host-agnostic prebuilt bundle, and dropping the dist
+# tag keeps the filename identical whether built locally (Fedora) or in CI
+# (Ubuntu), so the repo never accumulates duplicate packages per version.
+Release:        1
 Summary:        A cross-platform app made for e-hentai & exhentai by Flutter
 
 License:        Apache-2.0
