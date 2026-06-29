@@ -1,16 +1,17 @@
 name: Sync upstream & publish
 
-# One-dragon automation: on a schedule, merge the upstream author's latest
-# changes into this fork, and whenever the app version moves, build the rpms
-# (x86_64 + aarch64) and republish the dnf repo. Fully hands-off — users just
-# get the update via `dnf upgrade`.
+# One-dragon automation: on a schedule, check whether the upstream author has
+# published a NEW RELEASE. If so, build the rpms for that release (x86_64 +
+# aarch64) and republish the dnf repo. We track upstream releases (tags), NOT
+# master commits, so builds happen only when a real version ships — never on
+# every upstream commit. Fully hands-off; users get the update via dnf.
 on:
   schedule:
     - cron: '0 6 * * *'   # daily, 06:00 UTC
   workflow_dispatch:
     inputs:
       force:
-        description: Build & publish even if the version did not change
+        description: Build & publish even if no new upstream release
         type: boolean
         default: false
 
@@ -19,28 +20,30 @@ permissions:
   pages: write
 
 jobs:
-  sync:
+  detect:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     outputs:
-      changed: ${{ steps.sync.outputs.changed }}
-      version: ${{ steps.sync.outputs.version }}
-      sha: ${{ steps.sync.outputs.sha }}
+      changed: ${{ steps.check.outputs.changed }}
+      tag: ${{ steps.check.outputs.tag }}
+      version: ${{ steps.check.outputs.version }}
     steps:
-      - name: Checkout fork
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Sync upstream
-        id: sync
+      - name: Check for a new upstream release
+        id: check
         env:
+          FORK_SLUG: ${{ github.repository }}
           FORCE: ${{ inputs.force && '1' || '0' }}
-        run: bash tools/fedora/sync-upstream.sh
+        run: bash tools/fedora/check-upstream-release.sh
 
   release:
-    needs: sync
-    if: needs.sync.outputs.changed == 'true'
+    needs: detect
+    if: needs.detect.outputs.changed == 'true'
     uses: ./.github/workflows/fedora_repo.yml
     with:
-      ref: ${{ needs.sync.outputs.sha }}
+      ref: ${{ github.sha }}
+      upstream_tag: ${{ needs.detect.outputs.tag }}
     secrets: inherit

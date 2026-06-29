@@ -1,3 +1,17 @@
+# 📦 Fedora 一键安装 / Install on Fedora
+
+> 社区维护的 dnf 仓库,装完 `dnf upgrade` 自动跟随上游新版本。复制下面整段直接粘到终端即可:
+
+```bash
+sudo rpm --import https://meeks233.github.io/Jhentai-rpm/fedora/RPM-GPG-KEY-jhentai
+sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo https://meeks233.github.io/Jhentai-rpm/fedora/jhentai.repo
+sudo dnf install -y jhentai
+```
+
+支持 x86_64 与 aarch64。更新:`sudo dnf upgrade jhentai`。详情见 [docs/fedora-repo.md](docs/fedora-repo.md)。
+
+---
+
 ![platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Windows%20%7C%20MacOS%20%7C%20Linux-brightgreen)
 ![last-commit](https://img.shields.io/github/last-commit/jiangtian616/JHenTai)
 [![downloads](https://img.shields.io/github/downloads/jiangtian616/JHenTai/total)](https://github.com/jiangtian616/JHenTai/releases)

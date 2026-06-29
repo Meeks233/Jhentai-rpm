@@ -35,12 +35,19 @@ for rpm in "$@"; do
   echo "   signed $(basename "$rpm")"
 done
 
-# Make sure the rolling release exists.
-if ! gh release view "$RELEASE_TAG" -R "$REPO_SLUG" >/dev/null 2>&1; then
+# GitHub Pages hosts are always lowercase.
+owner_lc=$(echo "${REPO_SLUG%%/*}" | tr '[:upper:]' '[:lower:]')
+pages_url="https://$owner_lc.github.io/${REPO_SLUG##*/}/fedora/"
+release_notes="RPM packages for the JHenTai dnf repo. Install via dnf, not by hand: $pages_url"
+
+# Make sure the rolling release exists (and keep its notes/link correct).
+if gh release view "$RELEASE_TAG" -R "$REPO_SLUG" >/dev/null 2>&1; then
+  gh release edit "$RELEASE_TAG" -R "$REPO_SLUG" --notes "$release_notes" >/dev/null
+else
   echo ">> Creating rolling release '$RELEASE_TAG' on $REPO_SLUG"
   gh release create "$RELEASE_TAG" -R "$REPO_SLUG" \
     --title "Fedora dnf repository (packages)" \
-    --notes "RPM packages served by the JHenTai dnf repo. Install via dnf, not by hand: https://${REPO_SLUG%%/*}.github.io/${REPO_SLUG##*/}/fedora/" \
+    --notes "$release_notes" \
     --prerelease >/dev/null
 fi
 

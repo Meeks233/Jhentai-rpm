@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # One-click Fedora/dnf distribution for JHenTai.
 #
+# Manual fallback for the CI automation (.github/workflows/sync-and-publish.yml).
 # Does the whole chain in one shot:
-#   1. Sync the latest changes from the upstream author into your fork.
+#   1. Overlay the latest upstream RELEASE code onto the working tree.
 #   2. Build the Linux .rpm for this host's architecture.
 #   3. Sign it and upload it to the rolling GitHub Release (the package store).
 #   4. Rebuild the dnf metadata over ALL packages on the release and publish it
@@ -56,15 +57,23 @@ echo "==> Fork:    $owner_repo  (remote: $ORIGIN_REMOTE)"
 echo "==> Pages:   $REPO_BASEURL"
 
 # ---------------------------------------------------------------------------
-# 1. Sync upstream author -> fork
+# 1. Overlay the latest upstream RELEASE code (so we package a real release,
+#    not whatever happens to be on our packaging branch). Restored at the end.
 # ---------------------------------------------------------------------------
-if [ "${SKIP_UPSTREAM_SYNC:-0}" != "1" ]; then
-  echo "==> [1/4] Syncing upstream into $BRANCH"
-  git checkout "$BRANCH"
-  ORIGIN_REMOTE="$ORIGIN_REMOTE" BRANCH="$BRANCH" \
-    bash "$repo_root/tools/fedora/sync-upstream.sh"
+overlaid_tag=""
+if [ "${SKIP_UPSTREAM_SYNC:-0}" != "1" ] && command -v gh >/dev/null 2>&1; then
+  overlaid_tag=$(gh release view -R "${UPSTREAM_SLUG:-jiangtian616/JHenTai}" \
+    --json tagName --jq .tagName 2>/dev/null || true)
+fi
+if [ -n "$overlaid_tag" ]; then
+  echo "==> [1/4] Overlaying upstream release $overlaid_tag"
+  git remote add upstream https://github.com/jiangtian616/JHenTai 2>/dev/null || true
+  git fetch --depth 1 upstream tag "$overlaid_tag"
+  git checkout "$overlaid_tag" -- .
+  restore_tree() { git checkout HEAD -- . 2>/dev/null || true; }
+  trap restore_tree EXIT
 else
-  echo "==> [1/4] Skipping upstream sync"
+  echo "==> [1/4] Building current working tree (no overlay)"
 fi
 
 # ---------------------------------------------------------------------------
