@@ -42,6 +42,16 @@ jobs:
             artifact_name: release-Linux-arm64-deb
             artifact_path: |
               build/linux/*.deb
+          - target: Linux-x64-rpm
+            os: ubuntu-22.04
+            artifact_name: release-Linux-x64-rpm
+            artifact_path: |
+              build/linux/*.rpm
+          - target: Linux-arm64-rpm
+            os: ubuntu-22.04-arm
+            artifact_name: release-Linux-arm64-rpm
+            artifact_path: |
+              build/linux/*.rpm
           - target: iOS
             os: macos-latest
             cache_pod_key: ios-pods
@@ -193,6 +203,16 @@ jobs:
 
           cd ..
           dpkg-deb --build --root-owner-group JHenTai-${{ steps.get_version.outputs.version }}-Linux-${{ steps.get_version.outputs.arch }}
+      # Build Linux .rpm (Fedora / dnf)
+      - name: Build Linux rpm
+        if: matrix.target == 'Linux-x64-rpm' || matrix.target == 'Linux-arm64-rpm'
+        run: |
+          # Prepare build depends
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libfuse2 webkit2gtk-4.1 rpm
+
+          # Compile + package (build/linux/*.rpm)
+          bash rpm.sh
       # Build Linux .AppImage
       - name: Build Linux AppImage
         if: matrix.target == 'Linux-x64-AppImage'
@@ -248,7 +268,7 @@ jobs:
           tag: ${{ github.ref_name }}
           allowUpdates: true
           bodyFile: changelog/${{ github.ref_name }}.md
-          artifacts: /tmp/artifacts/release-Android/*.apk,/tmp/artifacts/release-iOS/*.ipa,/tmp/artifacts/release-macOS/*.dmg,/tmp/artifacts/release-Windows/*.zip,/tmp/artifacts/release-Linux-x64-deb/*.deb,/tmp/artifacts/release-Linux-arm64-deb/*.deb
+          artifacts: /tmp/artifacts/release-Android/*.apk,/tmp/artifacts/release-iOS/*.ipa,/tmp/artifacts/release-macOS/*.dmg,/tmp/artifacts/release-Windows/*.zip,/tmp/artifacts/release-Linux-x64-deb/*.deb,/tmp/artifacts/release-Linux-arm64-deb/*.deb,/tmp/artifacts/release-Linux-x64-rpm/*.rpm,/tmp/artifacts/release-Linux-arm64-rpm/*.rpm
           artifactErrorsFailBuild: true
           replacesArtifacts: true
 
