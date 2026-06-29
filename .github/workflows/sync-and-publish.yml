@@ -15,6 +15,12 @@ on:
         type: boolean
         default: false
 
+# Serialize with the build/publish workflow so two runs never race on the
+# release assets or the gh-pages force-push.
+concurrency:
+  group: fedora-repo
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pages: write
