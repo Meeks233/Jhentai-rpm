@@ -55,7 +55,9 @@ for rpm in "${rpms[@]}"; do
     --define "_gpg_name $GPG_NAME" \
     --define "_gpg_sign_cmd_extra_args $sign_extra_args" \
     "$rpm" >/dev/null
-  rpm -Kv "$rpm" | sed 's/^/   /'
+  # Informational only: reports NOKEY unless the pubkey is in rpm's keyring,
+  # which we don't require here. Never let it fail the script.
+  rpm -Kv "$rpm" 2>&1 | sed 's/^/   /' || true
 done
 
 echo ">> Publishing public key"
