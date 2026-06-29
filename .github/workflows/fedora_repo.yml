@@ -1,0 +1,66 @@
+name: Publish Fedora dnf repo
+
+# Builds the signed .rpm and publishes the dnf repository to the gh-pages
+# branch. Runs on tag pushes and on demand. This is a fork-only workflow: it
+# uses the committed jh_api_secret_config.dart as-is and needs no mobile
+# signing secrets — only the GPG signing key.
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+concurrency:
+  group: fedora-repo
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-22.04
+    env:
+      FLUTTER_VERSION: 3.24.4
+      GH_TOKEN: ${{ github.token }}
+      GPG_NAME: JHenTai Fedora Repo
+      SKIP_UPSTREAM_SYNC: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'master'
+          cache: true
+
+      - name: Install packaging deps
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libfuse2 webkit2gtk-4.1 \
+            rpm createrepo-c
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Import GPG signing key
+        env:
+          RPM_GPG_PRIVATE_KEY: ${{ secrets.RPM_GPG_PRIVATE_KEY }}
+          RPM_GPG_PASSPHRASE: ${{ secrets.RPM_GPG_PASSPHRASE }}
+        run: |
+          printf '%s' "$RPM_GPG_PRIVATE_KEY" | gpg --batch --import
+          install -m 600 /dev/null "$RUNNER_TEMP/gpg_passphrase"
+          printf '%s' "$RPM_GPG_PASSPHRASE" > "$RUNNER_TEMP/gpg_passphrase"
+
+      - name: Build, sign and publish repo
+        env:
+          GPG_PASSPHRASE_FILE: ${{ runner.temp }}/gpg_passphrase
+        run: |
+          git config --global user.name "JHenTai Fedora Bot"
+          git config --global user.email "shadowblaze_kai@icloud.com"
+          bash distribute.sh

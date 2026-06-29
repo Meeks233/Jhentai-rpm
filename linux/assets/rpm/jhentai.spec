@@ -8,6 +8,7 @@
 #     --define "_bundledir /abs/path/to/build/linux/x64/release/bundle" \
 #     --define "_desktopfile /abs/path/to/linux/assets/top.jtmonster.jhentai.desktop" \
 #     --define "_iconfile /abs/path/to/assets/icon/JHenTai_512.png" \
+#     --define "_licensefile /abs/path/to/LICENSE" \
 #     linux/assets/rpm/jhentai.spec
 #
 # Layout mirrors the Debian package: files live under /opt/jhentai with a
@@ -27,7 +28,7 @@ Version:        %{_version}
 Release:        1%{?dist}
 Summary:        A cross-platform app made for e-hentai & exhentai by Flutter
 
-License:        MIT
+License:        Apache-2.0
 URL:            https://github.com/jiangtian616/JHenTai
 
 # Runtime dependencies (Fedora package names).
@@ -44,6 +45,7 @@ mkdir -p %{buildroot}/opt/jhentai
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_datadir}/applications
 mkdir -p %{buildroot}%{_datadir}/icons/hicolor/512x512/apps
+mkdir -p %{buildroot}%{_datadir}/licenses/jhentai
 
 cp -r %{_bundledir}/* %{buildroot}/opt/jhentai/
 ln -sf /opt/jhentai/jhentai %{buildroot}%{_bindir}/jhentai
@@ -51,7 +53,10 @@ ln -sf /opt/jhentai/jhentai %{buildroot}%{_bindir}/jhentai
 install -m 0644 %{_desktopfile} %{buildroot}%{_datadir}/applications/top.jtmonster.jhentai.desktop
 install -m 0644 %{_iconfile} %{buildroot}%{_datadir}/icons/hicolor/512x512/apps/top.jtmonster.jhentai.png
 
+install -m 0644 %{_licensefile} %{buildroot}%{_datadir}/licenses/jhentai/LICENSE
+
 %files
+%license %{_datadir}/licenses/jhentai/LICENSE
 /opt/jhentai
 %{_bindir}/jhentai
 %{_datadir}/applications/top.jtmonster.jhentai.desktop

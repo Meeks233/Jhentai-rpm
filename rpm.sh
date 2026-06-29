@@ -46,6 +46,7 @@ rpmbuild -bb \
   --define "_bundledir $bundle_dir" \
   --define "_desktopfile $repo_root/linux/assets/top.jtmonster.jhentai.desktop" \
   --define "_iconfile $repo_root/assets/icon/JHenTai_512.png" \
+  --define "_licensefile $repo_root/LICENSE" \
   "$repo_root/linux/assets/rpm/jhentai.spec"
 
 # Copy the built rpm(s) next to the deb output location.

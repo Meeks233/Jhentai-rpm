@@ -1,0 +1,7 @@
+[jhentai]
+name=JHenTai (unofficial Fedora repo)
+baseurl=https://meeks233.github.io/JHenTai/fedora/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://meeks233.github.io/JHenTai/fedora/RPM-GPG-KEY-jhentai
