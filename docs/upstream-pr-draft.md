@@ -36,11 +36,46 @@ packages and signed metadata, for both x86_64 and aarch64.
 
 - **Docs-only PR** — one README hunk, no build or app-code changes.
 - The repository is **community-maintained by @Meeks233**, built from this
-  project's sources (Apache-2.0). The wording says it is unofficial — no claim
-  of endorsement. Remove it any time if you'd prefer not to link it.
+  project's sources (Apache-2.0). Remove it any time if you'd prefer not to
+  link it.
 - Packages and metadata are GPG-signed; the `.repo` ships `gpgcheck=1` +
   `repo_gpgcheck=1`.
 - Happy to add the same lines to `README_cn.md` / `README_kr.md` if you want.
+
+---
+
+## 供原作者审阅的新增开源文件（中文）
+
+以下文件全部为新增，均使用 Apache-2.0 许可证，只存在于 fork
+`Meeks233/Jhentai-rpm` 中，**不属于本 PR**（本 PR 只改 README 三个语言版本）。
+列在这里方便你核对：链接背后没有任何隐藏内容，它是一个自包含的打包/分发层，
+**原封不动地构建你发布的源码**，并用维护者自己的密钥签名。
+
+打包（RPM 本体）
+- `linux/assets/rpm/jhentai.spec` —— RPM spec：把 Flutter Linux 产物装到
+  `/opt/jhentai`，并建立 `/usr/bin/jhentai` 软链（与现有 Debian 打包一致），
+  `Requires: gtk3, webkit2gtk4.1`，并打包 LICENSE。
+- `rpm.sh` —— `flutter build linux` + `rpmbuild`，产出 `.rpm`。
+- `linux/assets/rpm/jhentai.repo` —— 用户安装的 dnf 仓库文件
+  （`gpgcheck=1` + `repo_gpgcheck=1`）。
+- `linux/assets/rpm/RPM-GPG-KEY-jhentai` —— 维护者的**公钥**
+  （私钥只存在于 GitHub Actions secrets，永不外泄、永不入库）。
+
+分发与托管（git 里不存二进制）
+- `tools/fedora/sign-and-upload.sh` —— 对 rpm 签名并上传到 GitHub Release。
+- `tools/fedora/build-metadata.sh` —— `createrepo_c` 生成元数据、签名
+  `repomd.xml`，仅把元数据发布到 `gh-pages`（rpm 实际从 Release 下载）。
+
+自动化（由发布触发，而非每次提交）
+- `tools/fedora/check-upstream-release.sh` —— 仅当**发布 tag** 变化时才动作，
+  普通提交不会触发构建。
+- `.github/workflows/fedora_repo.yml` —— 构建 x86_64 + aarch64 并发布。
+- `.github/workflows/sync-and-publish.yml` —— 每日检查，有新发布才构建发布。
+- `distribute.sh` —— 同一套流程的本地一键回退方案。
+
+文档
+- `docs/fedora-repo.md` —— 仓库托管架构与安全说明。
+- `docs/upstream-pr-draft.md` —— 本 PR 草稿（本文件）。
 
 ---
 

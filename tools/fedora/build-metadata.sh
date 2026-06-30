@@ -77,7 +77,7 @@ gpgkey_url="${REPO_BASEURL}RPM-GPG-KEY-jhentai"
 
 cat > "$pub/jhentai.repo" <<EOF
 [jhentai]
-name=JHenTai (unofficial Fedora repo)
+name=JHenTai (Fedora repo)
 baseurl=$REPO_BASEURL
 enabled=1
 gpgcheck=1
@@ -88,12 +88,12 @@ EOF
 cat > "$pub/index.html" <<EOF
 <!doctype html>
 <meta charset="utf-8">
-<title>JHenTai &mdash; unofficial Fedora/dnf repo</title>
+<title>JHenTai &mdash; Fedora/dnf repo</title>
 <style>body{font:16px/1.6 system-ui,sans-serif;max-width:46rem;margin:3rem auto;padding:0 1rem}code,pre{background:#f4f4f4;border-radius:4px}pre{padding:1rem;overflow:auto}</style>
-<h1>JHenTai &mdash; unofficial Fedora / dnf repo</h1>
+<h1>JHenTai &mdash; Fedora / dnf repo</h1>
 <p>Community-maintained RPM repository for
-<a href="https://github.com/jiangtian616/JHenTai">JHenTai</a> (Apache-2.0).
-Not affiliated with or endorsed by the original author.
+<a href="https://github.com/jiangtian616/JHenTai">JHenTai</a> (Apache-2.0),
+linked from the upstream project's README.
 Packages are pulled by dnf directly from GitHub Releases.</p>
 <h2>Install</h2>
 <pre>sudo rpm --import ${gpgkey_url}

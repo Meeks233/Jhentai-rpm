@@ -1,27 +1,10 @@
-# 📦 Install on Fedora (dnf)
-
-> Community-maintained dnf repo; once installed, `dnf upgrade` automatically
-> follows new upstream releases. Just copy the whole block below into a terminal:
+Fedora-based dnf linux distro:
 
 ```bash
 sudo rpm --import https://meeks233.github.io/Jhentai-rpm/fedora/RPM-GPG-KEY-jhentai
 sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo https://meeks233.github.io/Jhentai-rpm/fedora/jhentai.repo
 sudo dnf install -y jhentai
 ```
-
-Supports x86_64 and aarch64. Update with `sudo dnf upgrade jhentai`. See [docs/fedora-repo.md](docs/fedora-repo.md) for details.
-
-# 📦 Fedora 一键安装
-
-> 社区维护的 dnf 仓库,装完 `dnf upgrade` 自动跟随上游新版本。复制下面整段直接粘到终端即可:
-
-```bash
-sudo rpm --import https://meeks233.github.io/Jhentai-rpm/fedora/RPM-GPG-KEY-jhentai
-sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo https://meeks233.github.io/Jhentai-rpm/fedora/jhentai.repo
-sudo dnf install -y jhentai
-```
-
-支持 x86_64 与 aarch64。更新:`sudo dnf upgrade jhentai`。详情见 [docs/fedora-repo.md](docs/fedora-repo.md)。
 
 ---
 

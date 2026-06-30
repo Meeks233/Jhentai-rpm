@@ -1,3 +1,13 @@
+Fedora 기반 dnf Linux 배포판:
+
+```bash
+sudo rpm --import https://meeks233.github.io/Jhentai-rpm/fedora/RPM-GPG-KEY-jhentai
+sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo https://meeks233.github.io/Jhentai-rpm/fedora/jhentai.repo
+sudo dnf install -y jhentai
+```
+
+---
+
 ![platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Windows%20%7C%20MacOS%20%7C%20Linux-brightgreen)
 ![last-commit](https://img.shields.io/github/last-commit/jiangtian616/JHenTai)
 [![downloads](https://img.shields.io/github/downloads/jiangtian616/JHenTai/total)](https://github.com/jiangtian616/JHenTai/releases)

@@ -3,7 +3,7 @@
 This fork hosts a community-maintained, GPG-signed **dnf repository** for
 JHenTai, so you can install and keep it updated like any other package.
 
-> Unofficial build. Not affiliated with or endorsed by the original author.
+> Community-maintained build, linked from the upstream project's README.
 > Source: <https://github.com/jiangtian616/JHenTai> (Apache-2.0).
 
 ## Install

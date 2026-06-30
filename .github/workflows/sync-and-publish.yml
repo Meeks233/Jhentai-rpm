@@ -7,7 +7,10 @@ name: Sync upstream & publish
 # every upstream commit. Fully hands-off; users get the update via dnf.
 on:
   schedule:
-    - cron: '0 6 * * *'   # daily, 06:00 UTC
+    # The upstream author almost always publishes releases in the 12:00-18:00
+    # UTC window (peak 16:00 UTC). Run shortly after it so a new release is
+    # packaged the same day instead of waiting ~14h for the next morning run.
+    - cron: '0 20 * * *'   # daily, 20:00 UTC
   workflow_dispatch:
     inputs:
       force:
