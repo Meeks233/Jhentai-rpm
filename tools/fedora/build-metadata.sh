@@ -83,10 +83,10 @@ enabled=1
 gpgcheck=1
 repo_gpgcheck=1
 gpgkey=$gpgkey_url
-# Re-check for new packages hourly. The metadata is a few KiB and Pages caches
-# it for ~10min, so frequent revalidation is cheap and a published release
-# shows up in 'dnf upgrade' within the hour instead of after dnf's 48h default.
-metadata_expire=1h
+# Re-check for new packages twice a day. Upstream ships ~monthly and our
+# publisher only polls every 4h, so hourly client revalidation would be waste;
+# 12h still beats dnf's 48h default and surfaces a release the same day.
+metadata_expire=12h
 EOF
 
 cat > "$pub/index.html" <<EOF
