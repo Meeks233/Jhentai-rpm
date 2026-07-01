@@ -7,10 +7,12 @@ name: Sync upstream & publish
 # every upstream commit. Fully hands-off; users get the update via dnf.
 on:
   schedule:
-    # The upstream author almost always publishes releases in the 12:00-18:00
-    # UTC window (peak 16:00 UTC). Run shortly after it so a new release is
-    # packaged the same day instead of waiting ~14h for the next morning run.
-    - cron: '0 20 * * *'   # daily, 20:00 UTC
+    # Upstream release times are irregular (mostly ~12-14 UTC, but some land in
+    # the early-morning 02-07 UTC window). A single daily run lagged a release
+    # by up to ~8h. Poll every 4h instead: detection is a ~5s no-op unless the
+    # tag actually changed, so frequent checks are effectively free and cap the
+    # packaging lag at ~4h + GitHub's scheduler delay.
+    - cron: '0 */4 * * *'   # every 4 hours (00,04,08,12,16,20 UTC)
   workflow_dispatch:
     inputs:
       force:

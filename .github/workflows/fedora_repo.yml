@@ -128,6 +128,9 @@ jobs:
       - name: Build metadata and publish to gh-pages
         env:
           GPG_PASSPHRASE_FILE: ${{ runner.temp }}/gpg_passphrase
+          # Tag we just packaged: from the sync caller (inputs) or a tag push
+          # (ref_name). Stamped into the release body for tag-to-tag detection.
+          BUILT_UPSTREAM_TAG: ${{ inputs.upstream_tag || github.ref_name }}
         run: |
           git config --global user.name "JHenTai Fedora Bot"
           git config --global user.email "shadowblaze_kai@icloud.com"

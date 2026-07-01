@@ -130,4 +130,16 @@ git -C "$wt" -c user.name="JHenTai Fedora Bot" -c user.email="shadowblaze_kai@ic
 git -C "$wt" push -f origin "HEAD:$PAGES_BRANCH"
 git -C "$repo_root" worktree remove --force "$wt"
 git -C "$repo_root" branch -D "$tmp_branch" >/dev/null 2>&1 || true
+
+# Record which upstream release these packages correspond to, so the detector
+# (check-upstream-release.sh) can compare tag-to-tag. Stamp it into the rolling
+# release body only when we actually know the tag (guard against dispatch on a
+# branch, where the ref name is not a version tag).
+if [ -n "${BUILT_UPSTREAM_TAG:-}" ] && [[ "$BUILT_UPSTREAM_TAG" == v* ]]; then
+  echo ">> Recording built-upstream-tag: $BUILT_UPSTREAM_TAG"
+  body=$(gh release view "$RELEASE_TAG" -R "$REPO_SLUG" --json body --jq '.body' 2>/dev/null || true)
+  body=$(printf '%s\n' "$body" | grep -v '^built-upstream-tag:' || true)
+  body=$(printf '%s\nbuilt-upstream-tag: %s\n' "$body" "$BUILT_UPSTREAM_TAG")
+  gh release edit "$RELEASE_TAG" -R "$REPO_SLUG" --notes "$body" >/dev/null
+fi
 echo ">> Done."

@@ -17,21 +17,24 @@ RELEASE_TAG=${RELEASE_TAG:-repo}
 FORK_SLUG=${FORK_SLUG:-$(git remote get-url origin \
   | sed -E 's#.*github.com[:/]([^/]+/[^/.]+)(\.git)?#\1#')}
 
-# Latest upstream release tag, e.g. v8.0.13+312 -> rpm version 8.0.13.312
+# Latest upstream release tag, e.g. v8.0.13+312 or v8.0.14.
 upstream_tag=$(gh release view -R "$UPSTREAM_SLUG" --json tagName --jq .tagName)
 upstream_ver=$(echo "$upstream_tag" | sed 's/^v//; s/+/./')
 
-# Version we currently serve, parsed from the rolling release's rpm assets.
-current_ver=$(gh release view "$RELEASE_TAG" -R "$FORK_SLUG" --json assets \
-  --jq '.assets[].name' 2>/dev/null \
-  | sed -nE 's/^jhentai-(.*)-1\.[a-z0-9_]+\.rpm$/\1/p' | sort -V | tail -1 || true)
+# Which upstream release did we last successfully package? We compare TAG-to-TAG
+# using a marker stamped in the rolling release body by build-metadata.sh. We do
+# NOT derive "served version" from the rpm filename: that carries the pubspec
+# build number (e.g. 8.0.14.317), which does not match a tag like "v8.0.14", so
+# such a comparison would report "changed" on every run and rebuild endlessly.
+last_tag=$(gh release view "$RELEASE_TAG" -R "$FORK_SLUG" --json body --jq '.body' 2>/dev/null \
+  | sed -nE 's/^built-upstream-tag:[[:space:]]*([^[:space:]]+).*/\1/p' | head -1 || true)
 
 changed=false
-[ "$upstream_ver" != "$current_ver" ] && changed=true
+[ "$upstream_tag" != "$last_tag" ] && changed=true
 [ "${FORCE:-0}" = "1" ] && changed=true
 
-echo ">> upstream release: $upstream_tag ($upstream_ver)"
-echo ">> currently served : ${current_ver:-<none>}"
+echo ">> upstream release : $upstream_tag ($upstream_ver)"
+echo ">> last packaged tag: ${last_tag:-<none>}"
 echo ">> changed=$changed"
 
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
