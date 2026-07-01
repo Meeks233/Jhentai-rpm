@@ -1,0 +1,17 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>JHenTai &mdash; Fedora/dnf repo</title>
+<style>body{font:16px/1.6 system-ui,sans-serif;max-width:46rem;margin:3rem auto;padding:0 1rem}code,pre{background:#f4f4f4;border-radius:4px}pre{padding:1rem;overflow:auto}</style>
+<h1>JHenTai &mdash; Fedora / dnf repo</h1>
+<p>Community-maintained RPM repository for
+<a href="https://github.com/jiangtian616/JHenTai">JHenTai</a> (Apache-2.0),
+linked from the upstream project's README.
+Packages are pulled by dnf directly from GitHub Releases.</p>
+<h2>Install</h2>
+<pre>sudo rpm --import https://meeks233.github.io/Jhentai-rpm/fedora/RPM-GPG-KEY-jhentai
+sudo curl -fsSL -o /etc/yum.repos.d/jhentai.repo https://meeks233.github.io/Jhentai-rpm/fedora/jhentai.repo
+sudo dnf install jhentai</pre>
+<h2>Update</h2>
+<pre>sudo dnf upgrade jhentai</pre>
+<p>GPG key fingerprint:
+<code>B2B0 4D21 1288 5367 23CD 87F1 96E1 8262 CDE2 2A1A</code></p>
