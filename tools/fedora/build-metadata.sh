@@ -77,7 +77,7 @@ gpgkey_url="${REPO_BASEURL}RPM-GPG-KEY-jhentai"
 
 cat > "$pub/jhentai.repo" <<EOF
 [jhentai]
-name=JHenTai (Fedora repo)
+name=JHenTai
 baseurl=$REPO_BASEURL
 enabled=1
 gpgcheck=1

@@ -1,5 +1,5 @@
 [jhentai]
-name=JHenTai (unofficial Fedora repo)
+name=JHenTai
 baseurl=https://meeks233.github.io/Jhentai-rpm/fedora/
 enabled=1
 gpgcheck=1
