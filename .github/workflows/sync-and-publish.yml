@@ -18,11 +18,12 @@ on:
         type: boolean
         default: false
 
-# Serialize with the build/publish workflow so two runs never race on the
-# release assets or the gh-pages force-push.
-concurrency:
-  group: fedora-repo
-  cancel-in-progress: false
+# NOTE: do NOT declare `concurrency: fedora-repo` here. This workflow *calls*
+# fedora_repo.yml as a reusable workflow, and that callee already claims the
+# `fedora-repo` group. If the caller held the same group too, the callee could
+# never acquire it -> concurrency deadlock and the release job is never created.
+# Serialization on the release assets / gh-pages is handled by the callee's own
+# concurrency block, which also covers independent tag-push builds.
 
 permissions:
   contents: write
