@@ -29,7 +29,10 @@ permissions:
   pages: write
 
 env:
-  FLUTTER_VERSION: 3.24.4
+  # Keep in sync with upstream .github/workflows/build_publish.yml: we build the
+  # upstream release tree, so its pubspec constraints (e.g. path 1.9.1) require
+  # the Flutter SDK upstream pins.
+  FLUTTER_VERSION: 3.44.8
   GPG_NAME: JHenTai Fedora Repo
 
 jobs:
