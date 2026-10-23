@@ -1,0 +1,11 @@
+[jhentai]
+name=JHenTai
+baseurl=https://meeks233.github.io/Jhentai-rpm/fedora/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://meeks233.github.io/Jhentai-rpm/fedora/RPM-GPG-KEY-jhentai
+# Re-check for new packages twice a day. Upstream ships ~monthly and our
+# publisher only polls every 4h, so hourly client revalidation would be waste;
+# 12h still beats dnf's 48h default and surfaces a release the same day.
+metadata_expire=12h
